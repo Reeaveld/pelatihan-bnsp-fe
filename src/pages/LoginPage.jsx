@@ -5,11 +5,12 @@ import { Field, TextInput } from '../components/Input'
 import Button from '../components/Button'
 
 export default function LoginPage() {
-  const { login, loading } = useAuth()
+  const { login, register, loading } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
 
-  const [form, setForm] = useState({ username: '', email: '' })
+  const [isRegister, setIsRegister] = useState(false)
+  const [form, setForm] = useState({ username: '', email: '', password: '' })
   const [error, setError] = useState('')
 
   const handleChange = (e) => {
@@ -19,12 +20,20 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    if (!form.username || !form.email) {
-      setError('Nama pengguna dan email wajib diisi.')
-      return
-    }
     try {
-      await login(form)
+      if (isRegister) {
+        if (!form.username || !form.email || !form.password) {
+          setError('Semua field wajib diisi.')
+          return
+        }
+        await register(form)
+      } else {
+        if (!form.email || !form.password) {
+          setError('Email dan password wajib diisi.')
+          return
+        }
+        await login({ email: form.email, password: form.password })
+      }
       const target = location.state?.from?.pathname || '/'
       navigate(target, { replace: true })
     } catch (err) {
@@ -33,53 +42,66 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 bg-slate-50">
+    <div className="min-h-screen grid lg:grid-cols-2 bg-slate-50 relative overflow-hidden">
+      {/* Decorative background shapes */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-indigo-500/20 blur-3xl"></div>
+        <div className="absolute top-[60%] -right-[10%] w-[40%] h-[40%] rounded-full bg-purple-500/20 blur-3xl"></div>
+      </div>
+
       {/* Sisi kiri: informasi brand */}
-      <div className="hidden lg:flex flex-col justify-between p-10 bg-gradient-to-br from-indigo-600 via-indigo-700 to-slate-900 text-white">
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-lg bg-white/15 backdrop-blur grid place-items-center font-bold">
+      <div className="hidden lg:flex flex-col justify-between p-12 bg-slate-900 text-white relative z-10 shadow-2xl">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-30 mix-blend-luminosity"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent"></div>
+        
+        <div className="relative z-20 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 grid place-items-center font-bold text-lg shadow-lg">
             C
           </div>
-          <span className="font-semibold">Cinema Admin</span>
+          <span className="font-bold text-xl tracking-wide">CinemaX</span>
         </div>
-        <div className="max-w-md">
-          <h1 className="text-3xl font-semibold leading-tight">
-            Kelola film, pengguna, dan pemesanan bioskop Anda dalam satu tempat.
+        <div className="relative z-20 max-w-md mt-auto mb-10">
+          <h1 className="text-4xl font-bold leading-tight mb-4">
+            Rasakan Pengalaman Menonton Terbaik.
           </h1>
-          <p className="mt-4 text-indigo-100/80 text-sm">
-            Panel admin sederhana namun bertenaga untuk sistem manajemen
-            bioskop yang dibangun dengan Express, MySQL, dan React.
+          <p className="text-slate-300 text-lg">
+            Pesan tiket film favorit Anda dengan mudah, cepat, dan aman hanya di CinemaX.
           </p>
         </div>
-        <p className="text-xs text-indigo-100/60">
-          © {new Date().getFullYear()} Cinema Admin — Pelatihan BNSP
+        <p className="relative z-20 text-sm text-slate-400 font-medium">
+          © {new Date().getFullYear()} CinemaX Prototype
         </p>
       </div>
 
-      {/* Sisi kanan: form login */}
-      <div className="flex items-center justify-center px-4 py-12 sm:px-6 lg:px-10">
-        <div className="w-full max-w-md">
-          <div className="lg:hidden mb-6 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 grid place-items-center text-white font-bold">
+      {/* Sisi kanan: form login/register */}
+      <div className="flex items-center justify-center px-6 py-12 sm:px-12 lg:px-16 relative z-10 backdrop-blur-sm bg-white/70">
+        <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-slate-100">
+          <div className="lg:hidden mb-8 flex justify-center items-center gap-2">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 grid place-items-center text-white font-bold text-lg">
               C
             </div>
-            <span className="font-semibold text-slate-900">Cinema Admin</span>
+            <span className="font-bold text-xl text-slate-900 tracking-wide">CinemaX</span>
           </div>
-          <h2 className="text-2xl font-semibold text-slate-900">Masuk</h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Masukkan nama pengguna dan email yang sudah terdaftar di sistem.
+          <h2 className="text-3xl font-bold text-slate-900 text-center mb-2">
+            {isRegister ? 'Buat Akun' : 'Selamat Datang'}
+          </h2>
+          <p className="text-sm text-slate-500 text-center mb-8">
+            {isRegister ? 'Daftar untuk mulai memesan tiket.' : 'Masuk untuk melanjutkan.'}
           </p>
 
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-            <Field label="Nama pengguna" required>
-              <TextInput
-                name="username"
-                value={form.username}
-                onChange={handleChange}
-                autoComplete="username"
-                placeholder="contoh: ahmad"
-              />
-            </Field>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {isRegister && (
+              <Field label="Username" required>
+                <TextInput
+                  name="username"
+                  value={form.username}
+                  onChange={handleChange}
+                  autoComplete="username"
+                  placeholder="contoh: budi123"
+                  className="rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500"
+                />
+              </Field>
+            )}
             <Field label="Email" required>
               <TextInput
                 type="email"
@@ -87,12 +109,23 @@ export default function LoginPage() {
                 value={form.email}
                 onChange={handleChange}
                 autoComplete="email"
-                placeholder="contoh: ahmad@gmail.com"
+                placeholder="contoh: budi@gmail.com"
+                className="rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500"
+              />
+            </Field>
+            <Field label="Password" required>
+              <TextInput
+                type="password"
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                placeholder="********"
+                className="rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500"
               />
             </Field>
 
             {error && (
-              <div className="rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-sm text-rose-700">
+              <div className="rounded-xl bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-700 font-medium">
                 {error}
               </div>
             )}
@@ -100,16 +133,24 @@ export default function LoginPage() {
             <Button
               type="submit"
               size="lg"
-              className="w-full"
+              className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 border-none shadow-md shadow-indigo-200 transform transition hover:-translate-y-0.5"
               disabled={loading}
             >
-              {loading ? 'Memproses...' : 'Masuk'}
+              {loading ? 'Memproses...' : (isRegister ? 'Daftar' : 'Masuk')}
             </Button>
-
-            <p className="text-xs text-slate-500 text-center">
-              Belum punya akun? Tambahkan lewat menu Users setelah masuk.
-            </p>
           </form>
+
+          <div className="mt-8 text-center">
+            <button
+              onClick={() => {
+                setIsRegister(!isRegister)
+                setError('')
+              }}
+              className="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+            >
+              {isRegister ? 'Sudah punya akun? Masuk' : 'Belum punya akun? Daftar'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

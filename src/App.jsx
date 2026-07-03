@@ -2,10 +2,9 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import AppLayout from './components/AppLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import LoginPage from './pages/LoginPage'
-import DashboardPage from './pages/DashboardPage'
+import HomePage from './pages/HomePage'
+import HistoryPage from './pages/HistoryPage'
 import MoviesPage from './pages/MoviesPage'
-import UsersPage from './pages/UsersPage'
-import BookingsPage from './pages/BookingsPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 export default function App() {
@@ -13,17 +12,29 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
 
-      <Route
-        element={
-          <ProtectedRoute>
-            <AppLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/movies" element={<MoviesPage />} />
-        <Route path="/users" element={<UsersPage />} />
-        <Route path="/bookings" element={<BookingsPage />} />
+      <Route element={<AppLayout />}>
+        {/* Public Routes */}
+        <Route path="/" element={<HomePage />} />
+        
+        {/* Protected Routes */}
+        <Route
+          path="/history"
+          element={
+            <ProtectedRoute>
+              <HistoryPage />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/movies"
+          element={
+            <ProtectedRoute>
+              <MoviesPage />
+            </ProtectedRoute>
+          }
+        />
+        
         <Route path="*" element={<NotFoundPage />} />
       </Route>
 

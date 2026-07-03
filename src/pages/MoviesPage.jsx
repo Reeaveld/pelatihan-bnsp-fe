@@ -7,7 +7,7 @@ import { Field, TextInput, TextArea, Select } from '../components/Input'
 import { EmptyState, ErrorState, LoadingState } from '../components/StateBanner'
 import { formatDate, statusBadgeClass } from '../utils/format'
 
-const emptyForm = { title: '', description: '', status: 'Segera Tayang', jadwal: '' }
+const emptyForm = { title: '', description: '', status: 'Segera Tayang', jadwal: '', image: null }
 
 export default function MoviesPage() {
   const [items, setItems] = useState([])
@@ -19,6 +19,7 @@ export default function MoviesPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState(null)
   const [form, setForm] = useState(emptyForm)
+  const [imageFile, setImageFile] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState('')
 
@@ -53,6 +54,7 @@ export default function MoviesPage() {
   const openCreate = () => {
     setEditing(null)
     setForm(emptyForm)
+    setImageFile(null)
     setFormError('')
     setModalOpen(true)
   }
@@ -65,6 +67,7 @@ export default function MoviesPage() {
       status: movie.status || 'Segera Tayang',
       jadwal: movie.jadwal ? movie.jadwal.substring(0, 10) : '',
     })
+    setImageFile(null)
     setFormError('')
     setModalOpen(true)
   }
@@ -82,10 +85,19 @@ export default function MoviesPage() {
     setSubmitting(true)
     setFormError('')
     try {
+      const formData = new FormData();
+      formData.append('title', form.title);
+      formData.append('description', form.description);
+      formData.append('status', form.status);
+      formData.append('jadwal', form.jadwal);
+      if (imageFile) {
+        formData.append('image', imageFile);
+      }
+
       if (editing) {
-        await moviesApi.update(editing.id, form)
+        await moviesApi.update(editing.id, formData)
       } else {
-        await moviesApi.create(form)
+        await moviesApi.create(formData)
       }
       setModalOpen(false)
       await load()
@@ -159,12 +171,21 @@ export default function MoviesPage() {
                 <tr key={m.id} className="hover:bg-slate-50">
                   <td className="px-4 py-2.5 text-slate-500 tabular-nums">#{m.id}</td>
                   <td className="px-4 py-2.5">
-                    <p className="font-medium text-slate-900">{m.title}</p>
-                    {m.description && (
-                      <p className="text-xs text-slate-500 line-clamp-1 max-w-md">
-                        {m.description}
-                      </p>
-                    )}
+                    <div className="flex items-center gap-3">
+                      {m.image ? (
+                        <img src={`http://localhost:3000/uploads/${m.image}`} alt={m.title} className="w-10 h-14 object-cover rounded-md bg-slate-200 shrink-0" />
+                      ) : (
+                        <div className="w-10 h-14 rounded-md bg-slate-200 shrink-0 flex items-center justify-center text-slate-400 text-xs">No Img</div>
+                      )}
+                      <div>
+                        <p className="font-medium text-slate-900">{m.title}</p>
+                        {m.description && (
+                          <p className="text-xs text-slate-500 line-clamp-1 max-w-xs">
+                            {m.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </td>
                   <td className="px-4 py-2.5">
                     <span className={statusBadgeClass(m.status)}>{m.status}</span>
@@ -225,6 +246,20 @@ export default function MoviesPage() {
               />
             </Field>
           </div>
+          <Field label="Gambar Poster (Opsional)">
+             <input 
+               type="file"
+               accept="image/*"
+               onChange={(e) => setImageFile(e.target.files[0])}
+               className="block w-full text-sm text-slate-500
+                  file:mr-4 file:py-2.5 file:px-4
+                  file:rounded-xl file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-indigo-50 file:text-indigo-700
+                  hover:file:bg-indigo-100
+                  cursor-pointer"
+             />
+          </Field>
           {formError && (
             <p className="text-sm text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">
               {formError}

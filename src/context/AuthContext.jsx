@@ -21,10 +21,21 @@ export function AuthProvider({ children }) {
     else localStorage.removeItem(STORAGE_KEY)
   }, [user])
 
-  const login = async ({ username, email }) => {
+  const login = async ({ email, password }) => {
     setLoading(true)
     try {
-      const res = await authApi.login({ username, email })
+      const res = await authApi.login({ email, password })
+      setUser(res.data)
+      return res
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const register = async ({ username, email, password }) => {
+    setLoading(true)
+    try {
+      const res = await authApi.register({ username, email, password })
       setUser(res.data)
       return res
     } finally {
@@ -35,7 +46,7 @@ export function AuthProvider({ children }) {
   const logout = () => setUser(null)
 
   const value = useMemo(
-    () => ({ user, loading, login, logout, isAuthenticated: !!user }),
+    () => ({ user, loading, login, register, logout, isAuthenticated: !!user }),
     [user, loading]
   )
 

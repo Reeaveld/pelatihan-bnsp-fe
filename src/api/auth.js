@@ -1,9 +1,12 @@
 import client from './client'
 
 export const authApi = {
-  login: async ({ username, email }) => {
-    // Backend cinema-api menerima field `username` (yang dicocokkan ke kolom `nama`) & `email`.
-    const { data } = await client.post('/auth/login', { username, email })
+  login: async ({ email, password }) => {
+    const { data } = await client.post('/auth/login', { email, password })
     return data
   },
+  register: async ({ username, email, password }) => {
+    const { data } = await client.post('/auth/register', { username, email, password })
+    return data
+  }
 }

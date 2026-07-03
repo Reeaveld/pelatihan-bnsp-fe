@@ -10,11 +10,23 @@ export const moviesApi = {
     return data.data
   },
   create: async (payload) => {
-    const { data } = await client.post('/movies', payload)
+    let requestData = payload;
+    let headers = {};
+    if (payload instanceof FormData) {
+        requestData = payload;
+        headers = { 'Content-Type': 'multipart/form-data' };
+    }
+    const { data } = await client.post('/movies', requestData, { headers })
     return data
   },
   update: async (id, payload) => {
-    const { data } = await client.put(`/movies/${id}`, payload)
+    let requestData = payload;
+    let headers = {};
+    if (payload instanceof FormData) {
+        requestData = payload;
+        headers = { 'Content-Type': 'multipart/form-data' };
+    }
+    const { data } = await client.put(`/movies/${id}`, requestData, { headers })
     return data
   },
   remove: async (id) => {
